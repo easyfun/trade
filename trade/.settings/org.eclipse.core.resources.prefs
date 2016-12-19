@@ -1,0 +1,8 @@
+eclipse.preferences.version=1
+encoding//src/app.py=utf-8
+encoding//src/handler/__init__.py=utf-8
+encoding//src/handler/index.py=utf-8
+encoding//src/handler/user/__init__.py=utf-8
+encoding//src/handler/user/register.py=utf-8
+encoding//src/handler/user/test_register.py=utf-8
+encoding//test/user/test_register.py=utf-8
