@@ -1,8 +1,15 @@
 eclipse.preferences.version=1
 encoding//src/app.py=utf-8
+encoding//src/dao/__init__.py=utf-8
+encoding//src/dao/user_dao.py=utf-8
+encoding//src/exception/__init__.py=utf-8
+encoding//src/exception/error_code.py=utf-8
 encoding//src/handler/__init__.py=utf-8
 encoding//src/handler/index.py=utf-8
+encoding//src/handler/requestex_handler.py=utf-8
 encoding//src/handler/user/__init__.py=utf-8
 encoding//src/handler/user/register.py=utf-8
-encoding//src/handler/user/test_register.py=utf-8
+encoding//src/model/user.py=utf-8
+encoding//src/utils/__init__.py=utf-8
+encoding//src/utils/tool.py=utf-8
 encoding//test/user/test_register.py=utf-8
