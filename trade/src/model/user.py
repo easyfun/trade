@@ -9,6 +9,7 @@ Created on 2016年12月20日
 
 #注册用户来源类型
 class FromType(object):
+    UNKNOWN=-1
     PC=0
     IOS=1
     ANDRIOD=2

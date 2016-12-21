@@ -13,8 +13,8 @@ def is_numerical_string(string):
     if string==None:
         return False
     
-    if string=='':
-        return False
+#     if string=='':
+#         return False
     
     for s in string:
         if s not in digits:

@@ -11,7 +11,8 @@ Created on 2016年12月19日
 import utils.tool
 from handler.requestex_handler import RequestExHandler
 from dao.user_dao import UserDao 
-from model.user import UserType
+from model.user import UserType, FromType
+from model.user import User
 from exception.error_code import UserErrorCode
 
 class RegisterHandler(RequestExHandler):
@@ -19,45 +20,48 @@ class RegisterHandler(RequestExHandler):
 #         self.write('ok')
 
     def post(self):
-#         self.body_from_json = json.loads(self.request.body)
+        self.load_body()
         
         if not self.check_function_call(self.check_request):
             return        
         
+        user=User()
+        user.mobile=self.body_from_json.get('mobile')
+        user.user_type=self.body_from_json.get('user_type')
+        user.from_type=self.body_from_json.get('from_type', FromType.UNKNOWN)
+        user.login_password=self.body_from_json.get('login_password')
         
         
         self.write_response()
         
 
     def check_request(self):
-        req=self.body_from_json
-        resp=self.response
-        
         #检查手机号
-        if not utils.tool.is_numerical_string(req['mobile']):
-            resp['err_code']=UserErrorCode.REQUEST_ARGUMENT_ERROR
-            resp['err_msg']='请求参数错误，mobile错误'
+        if 0==len(self.body_from_json['mobile']):
+            self.set_response_error(UserErrorCode.ARGUMENT_MOBILE_ERROR)
+            return False
+
+        if not utils.tool.is_numerical_string(self.body_from_json['mobile']):
+            self.set_response_error(UserErrorCode.ARGUMENT_MOBILE_ERROR)
             return False
         
         #手机号是否已注册
         user_dao=UserDao()
-        user=user_dao.get_user_by_mobile(req['mobile'])
+        user=user_dao.get_user_by_mobile(self.body_from_json['mobile'])
         if user != None:
-            resp['err_code']=UserErrorCode.MOBILE_HAS_EXSITED
-            resp['err_msg']='此手机号已经注册'
+            self.set_response(UserErrorCode.MOBILE_HAS_EXSITED)
             return False
         
         #检查登录密码
-        if len(req['login_password']) < 6:
-            resp['err_code']=UserErrorCode.REQUEST_ARGUMENT_ERROR
-            resp['err_msg']='请求参数错误，登录密码长度不足6位'
+        if len(self.body_from_json['login_password']) < 6:
+            self.set_response_error(UserErrorCode.ARGUMENT_PASSWORD_ERROR)
             return False
         
         #检查用户类型
-        if not UserType.is_valid(req['user_type']):
-            resp['err_code']=UserErrorCode.REQUEST_ARGUMENT_ERROR
-            resp['err_msg']='请求参数错误，用户类型错误'
+        if not UserType.is_valid(self.body_from_json['user_type']):
+            self.set_response_error(UserErrorCode.ARGUMENT_USE_TYPE_ERROR)
             return False
+        
         
         return True
 
