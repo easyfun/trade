@@ -37,7 +37,7 @@ class UserType(object):
             return True
         elif UserType.BORROWER==user_type:
             return True
-        elif UserType.ANDRIOD==user_type:
+        elif UserType.PLATFORM==user_type:
             return True
         return False
 
@@ -60,6 +60,11 @@ class User(object):
         self.update_time=None
         self.create_time=None
         self.head_portrait_url=None
+
+    def __str__(self, *args, **kwargs):
+        return str(self.__dict__)
+#         return object.__str__(self, *args, **kwargs)
+
         
         
 class UserFlow(object):

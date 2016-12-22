@@ -7,6 +7,7 @@ Created on 2016年12月20日
 @author: ASPRCK
 '''
 from dao import MysqlClient
+from mysql.connector import ProgrammingError
 
 class UserDao(MysqlClient):
     def __init__(self):
@@ -15,10 +16,17 @@ class UserDao(MysqlClient):
 
     def get_user_by_mobile(self, mobile):
         cursor=self.cursor()
+        
         sql="select * from user.t_user_%s where mobile='%s'" %(
             mobile[-2:],
             mobile)
-        cursor.execute(sql)
+        try:
+            cursor.execute(sql)
+        
+        except ProgrammingError as err:
+            print('Error: {}'.format(err))
+            return None
+        
         user=None
         users=cursor.fetchall()
         for u in users:

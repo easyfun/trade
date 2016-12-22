@@ -5,7 +5,7 @@ import mysql.connector
 
 class MysqlClient(object):
     _HOST='127.0.0.1' 
-    _USER='user'
+    _USER='root'
     _PASSWORD='easyfun'
     _POOL_SIZE=10
 

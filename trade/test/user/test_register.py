@@ -15,7 +15,7 @@ class UserRegisterTest(unittest.TestCase):
     
     def test_user_register(self):
         client=tornado.httpclient.HTTPClient()
-        body={'mobile':'1351729a5502'}
+        body={'mobile':'13517295502','user_type':2L,'login_password':'123456'}
         encode_body=json.dumps(body)
         request=tornado.httpclient.HTTPRequest(
             r'http://127.0.0.1:8080/user/register',
@@ -24,7 +24,7 @@ class UserRegisterTest(unittest.TestCase):
             )
         response=client.fetch(request)
 #         print(response)
-        print(response.body)
+        print(json.dumps(response.body))
 
 
 if '__main__'==__name__:

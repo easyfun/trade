@@ -53,4 +53,6 @@ class RequestExHandler(tornado.web.RequestHandler):
         self.write(json.dumps(self.response))
     
 
+    def get_id(self, id_type, suffix):
+        pass
     
