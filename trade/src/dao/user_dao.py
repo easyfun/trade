@@ -7,7 +7,7 @@ Created on 2016年12月20日
 @author: ASPRCK
 '''
 from dao import MysqlClient
-from mysql.connector import ProgrammingError
+from mysql.connector import Error
 
 class UserDao(MysqlClient):
     def __init__(self):
@@ -17,15 +17,15 @@ class UserDao(MysqlClient):
     def get_user_by_mobile(self, mobile):
         cursor=self.cursor()
         
-        sql="select * from user.t_user_%s where mobile='%s'" %(
-            mobile[-2:],
-            mobile)
+        sql="select * from user.t_users where mobile='%s'" %(mobile,)
         try:
             cursor.execute(sql)
         
-        except ProgrammingError as err:
+        except Error as err:#是否需要判断其它异常
             print('Error: {}'.format(err))
-            return None
+            cursor.close()
+            self.close()
+            return (False,None)
         
         user=None
         users=cursor.fetchall()
@@ -33,7 +33,8 @@ class UserDao(MysqlClient):
             user=u
             break
         cursor.close()
-        return user
+        self.close()
+        return (True,user)
 
     
     def get_user_by_user_id(self, user_id):
@@ -41,13 +42,22 @@ class UserDao(MysqlClient):
         sql="select * from user.t_user_%s where user_id='%s'" %(
             user_id[-2:],
             user_id)
-        cursor.execute(sql)
+        
+        try:
+            cursor.execute(sql)
+        except Error as err:#是否需要判断其它异常
+            print('Error: {}'.format(err))
+            cursor.close()
+            self.close()
+            return (False,None)
+
         user=None
         users=cursor.fetchall()
         for u in users:
             user=u
             break
         cursor.close()
-        return user
+        self.close()
+        return (True,user)
     
     

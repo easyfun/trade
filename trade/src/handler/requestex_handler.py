@@ -8,6 +8,7 @@ Created on 2016年12月20日
 '''
 import tornado.web
 import json
+from datetime import datetime
 
 
 class RequestExHandler(tornado.web.RequestHandler):
@@ -19,16 +20,12 @@ class RequestExHandler(tornado.web.RequestHandler):
 #         }
 
     def initialize(self):
-        self.now_time=None
-        self.body_from_json = None
+        self.body=None
+        self.now_time=datetime.date()
         self.response={
             'err_code':0,
             'err_msg':''
         }
-
-    
-    def load_body(self):
-        self.body_from_json = json.loads(self.request.body)
 
     
     def check_function_call(self, func, *args, **kwargs):

@@ -20,8 +20,10 @@ class MysqlClient(object):
             pool_size=MysqlClient._POOL_SIZE)
         
     def cursor(self):
-        self.connect()
+        if not self.connection:
+            self.connect()
         return self.connection.cursor(dictionary=True)
         
     def close(self):
-        self.connection.close()
+        if not self.connection:
+            self.connection.close()

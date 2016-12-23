@@ -42,6 +42,25 @@ class UserType(object):
         return False
 
 
+class UserStatus(object):
+    NORMAL=0
+    LOCKED=1
+    DELETED=2
+    BLACK=3
+    
+    @staticmethod
+    def is_valid(status):
+        if UserStatus.NORMAL==status:
+            return True
+        elif UserStatus.LOCKED==status:
+            return True
+        elif UserStatus.DELETED==status:
+            return True
+        elif UserStatus.BLACK==status:
+            return True
+        return False
+
+
 class User(object):
     def __init__(self):
         self.user_id=None

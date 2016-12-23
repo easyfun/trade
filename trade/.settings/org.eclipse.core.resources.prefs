@@ -15,4 +15,5 @@ encoding//src/model/user.py=utf-8
 encoding//src/redis_client/__init__.py=utf-8
 encoding//src/utils/__init__.py=utf-8
 encoding//src/utils/tool.py=utf-8
+encoding//test/dao/test_user_dao.py=utf-8
 encoding//test/user/test_register.py=utf-8
