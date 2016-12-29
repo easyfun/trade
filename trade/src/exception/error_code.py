@@ -19,8 +19,10 @@ class UserErrorCode(object):
     ARGUMENT_REFEREE_NAME_ERROR=(100006, '请求参数错误，推荐人姓名错误')
     REFEREE_NOT_EXSITED=(100007, '请求参数错误，推荐人不存在')
     SYSTEM_ERROR_DATABASE=(100008, '系统错误，数据库服务异常')
+    CREATE_USER_FLOW_ID_ERROR=(100004, '创建用户流水id失败')
     
     
     
 class IdErrorCode(object):
+    ARGUMENT_ID_TYPE_ERROR=(200000, '请求参数错误，id_type类型错误')
     ARGUMENT_SUFFIX_ERROR=(200000, '请求参数错误，后缀不是纯数字串')

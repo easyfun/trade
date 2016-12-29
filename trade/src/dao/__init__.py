@@ -11,6 +11,7 @@ class MysqlClient(object):
 
     def __init__(self):
         self.connection=None
+        self.cursor=None
     
     def connect(self):
         self.connection=mysql.connector.connect(
@@ -22,8 +23,23 @@ class MysqlClient(object):
     def cursor(self):
         if not self.connection:
             self.connect()
-        return self.connection.cursor(dictionary=True)
+        if not self.cursor:
+            self.cursor=self.connection.cursor(dictionary=True)
+        return self.cursor
         
     def close(self):
-        if not self.connection:
-            self.connection.close()
+        self.cursor.close()
+        self.connection.close()
+            
+    def close_commit(self):
+        self.cursor.close()
+        self.connection.commit()
+        self.connection.close()
+        
+    def close_roll_back(self):
+        self.cursor.close()
+        self.connection.rollback()
+        self.connection.close()
+            
+            
+    

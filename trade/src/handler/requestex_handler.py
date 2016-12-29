@@ -9,6 +9,7 @@ Created on 2016年12月20日
 import tornado.web
 import json
 from datetime import datetime
+from exception import error_code
 
 
 class RequestExHandler(tornado.web.RequestHandler):
@@ -20,6 +21,8 @@ class RequestExHandler(tornado.web.RequestHandler):
 #         }
 
     def initialize(self):
+        self.mysql_client=None
+        self.mysql_client_flow=None
         self.body=None
         self.now_time=datetime.date()
         self.response={
@@ -28,6 +31,7 @@ class RequestExHandler(tornado.web.RequestHandler):
         }
 
     
+    #弃用
     def check_function_call(self, func, *args, **kwargs):
         if not func(*args, **kwargs):
             self.write(json.dumps(self.response))
@@ -50,6 +54,39 @@ class RequestExHandler(tornado.web.RequestHandler):
         self.write(json.dumps(self.response))
     
 
-    def get_id(self, id_type, suffix):
-        pass
+    def finish_handler(self):
+        self.write(json.dumps(self.response))
+        self.finish()
+
+    def finish_handler_commit(self):
+        if not self.mysql_client:
+            self.mysql_client.close_commit()
+        
+        if not self.mysql_client_flow:
+            self.mysql_client_flow.close_commit()
+        
+        self.write(json.dumps(self.response))
+        self.finish()
+
+
+    def finish_handler_roll_back(self):
+        if not self.mysql_client:
+            self.mysql_client.close_roll_back()
+        
+        if not self.mysql_client_flow:
+            self.mysql_client_flow.close_commit()
+
+        self.write(json.dumps(self.response))
+        self.finish()
+
+
+    @classmethod
+    def get_id(response):
+        body=json.loads(response.body)
+#         print(user_id_body)
+        if error_code.SUCCESS_CODE != body.get('err_code',-1):
+            return -1        
+        data=body.get('data',-1)
+        return data
+
     

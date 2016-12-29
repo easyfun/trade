@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from handler.index import IndexHandler
 from handler.user import register
-from handler.id import user_id
+from handler.id import id_handler
 
 __all__=['handlers']
 
@@ -11,5 +11,5 @@ handlers=[
     
     (r'/user/register', register.RegisterHandler),
     
-    (r'/id/user_id', user_id.UserIdHandler)
+    (r'/id_handler/id_handler', id_handler.IdHandler)
 ]

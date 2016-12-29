@@ -87,6 +87,27 @@ class User(object):
         
         
 class UserFlow(object):
+    REGISTER_USER_REQUEST=(0,'注册用户请求')
+    REGISTER_USER_SUCCESS=(1,'注册用户成功')
+    REGISTER_USER_FAIL=(2,'注册用户失败')
+    
+    COLUMN_NAME='flow_id,'\
+                'real_name,'\
+                'nick_name,'\
+                'login_password,'\
+                'withdrawal_password,'\
+                'mobile,'\
+                'from_type,'\
+                'user_type,'\
+                'register_date,'\
+                'referee_uid,'\
+                'referee_name,'\
+                'referee_mobile,'\
+                'operation,'\
+                'remark,'\
+                'create_time'
+    
+    
     def __init__(self):
         self.flow_id=None
         self.real_name=None
@@ -102,4 +123,23 @@ class UserFlow(object):
         self.referee_mobile=None
         self.operation=None
         self.remark=None
+        self.head_portrait_url=None
         self.create_time=None
+        
+        
+    def set_by_user(self, user):    
+        self.real_name=user.real_name
+        self.nick_name=user.nick_name
+        self.login_password=user.login_password
+        self.withdrawal_password=user.withdrawal_password
+        self.mobile=user.mobile
+        self.from_type=user.from_type
+        self.user_type=user.user_type
+        self.register_date=user.register_date
+        self.referee_uid=user.referee_uid
+        self.referee_name=user.referee_name
+        self.referee_mobile=user.referee_mobile
+        self.head_portrait_url=user.head_portrait_url
+        
+        
+        

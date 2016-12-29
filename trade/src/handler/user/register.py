@@ -10,15 +10,18 @@ Created on 2016年12月19日
 
 import utils.tool
 from handler.requestex_handler import RequestExHandler
-from dao.user_dao import UserDao 
+from dao.user_dao import UserDao
+from dao.user_flow_dao import UserFlowDao
 from model.user import UserType, FromType, UserStatus
-from model.user import User
+from model.user import User,UserFlow
 from exception.error_code import UserErrorCode
 import tornado.httpclient
 import tornado.gen
 import json
 from exception import error_code
 from datetime import datetime
+from dao import MysqlClient
+from handler import id
 
 class RegisterHandler(RequestExHandler):
 #     def get(self):
@@ -28,33 +31,75 @@ class RegisterHandler(RequestExHandler):
     @tornado.gen.engine
     def post(self):
         user=User()
-        if not self.check_function_call(self.check_request, user):
-            self.finish()
+        self.mysql_client=MysqlClient()
+#         if not self.check_function_call(self.check_request, user,mysql_client):
+#             mysql_client.close_roll_back()
+#             self.finish()
+#             return
+        if not self.check_request(user):
+            self.finish_handler_roll_back()
             return        
+        
         
         http_client=tornado.httpclient.AsyncHTTPClient()
         user_id_resp=yield tornado.web.gen.Task(http_client.fetch,
-                    'http://127.0.0.1:8080/id/user_id?suffix=%s' % (
-                    user.mobile[-2:],))
-        user_id_body=json.loads(user_id_resp.body)
-#         print(user_id_body)
-        if error_code.SUCCESS_CODE != user_id_body.get('err_code',-1):
+                    id.ID_URL % (id.USER_ID,user.mobile[-2:],))
+        user.user_id=RequestExHandler.get_id(user_id_resp)
+        if user.user_id < 0:
             self.set_response_error(UserErrorCode.CREATE_USER_ID_ERROR)
-            self.finish()
-            return
-        user.user_id=user_id_body.get('data',-1)
-        if -1==user.user_id:
-            self.set_response_error(UserErrorCode.CREATE_USER_ID_ERROR)
-            self.finish()
+            self.finish_handler_roll_back()
             return
         
         user.update_time=datetime.date()
         user.create_time=user.update_time
-        self.write_response()
-        self.finish()
         
+        #插入开户请求流水
+        user_flow=UserFlow()
+        user_flow.set_by_user(user)
+        user_flow_id_resp=yield tornado.web.gen.Task(http_client.fetch,
+            id.ID_URL % (id.USER_FLOW_ID, str(user.user_id%100)))
+        user_flow.flow_id=RequestExHandler.get_id(user_flow_id_resp)
+        if user_flow.flow_id < 0:
+            self.set_response_error(UserErrorCode.CREATE_USER_FLOW_ID_ERROR)
+            self.finish_handler_roll_back()
+            return
+        user_flow.operation=UserFlow.REGISTER_USER_REQUEST[0]
+        user_flow.remark=UserFlow.REGISTER_USER_REQUEST[1]
 
-    def check_request(self,user):
+        user_flow_dao=UserFlowDao(self.mysql_client_flow)
+        if not user_flow_dao.insert(user_flow):
+            self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
+            self.finish_handler_roll_back()
+            return
+
+        #插入用户表        
+        user_dao=UserDao(self.mysql_client)
+        if not user_dao.insert(user):
+            self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
+            self.finish_handler_roll_back()
+            return
+        
+        
+        #插入开户成功流水        
+        user_flow_id_resp=yield tornado.web.gen.Task(http_client.fetch,
+            id.ID_URL % (id.USER_FLOW_ID, str(user.user_id%100)))
+        user_flow.flow_id=RequestExHandler.get_id(user_flow_id_resp)
+        if user_flow.flow_id < 0:
+            self.set_response_error(UserErrorCode.CREATE_USER_FLOW_ID_ERROR)
+            self.finish_handler_roll_back()
+            return
+        user_flow.operation=UserFlow.REGISTER_USER_SUCCESS[0]
+        user_flow.remark=UserFlow.REGISTER_USER_SUCCESS[1]
+
+        if not user_flow_dao.insert(user_flow):
+            self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
+            self.finish_handler_roll_back()
+            return
+
+        self.finish_handler_commit()
+
+
+    def check_request(self,user,mysql_client):
         body = json.loads(self.request.body)
         user.mobile=body.get('mobile','')
         user.user_type=body.get('user_type')
@@ -76,13 +121,6 @@ class RegisterHandler(RequestExHandler):
             self.set_response_error(UserErrorCode.ARGUMENT_MOBILE_ERROR)
             return False
         
-        #手机号是否已注册
-#         user_dao=UserDao()
-#         user=user_dao.get_user_by_mobile(user.mobile)
-#         if user != None:
-#             self.set_response_error(UserErrorCode.MOBILE_HAS_EXSITED)
-#             return False
-        
         #检查登录密码
         if len(user.login_password) < 6:
             self.set_response_error(UserErrorCode.ARGUMENT_PASSWORD_ERROR)
@@ -102,7 +140,7 @@ class RegisterHandler(RequestExHandler):
             self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_MOBILE_ERROR)
             return False
 
-        user_dao=UserDao()
+        user_dao=UserDao(mysql_client)
         ret,referee=user_dao.get_user_by_mobile(user.referee_mobile)
         if not ret:
             self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
