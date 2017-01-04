@@ -24,7 +24,7 @@ class RequestExHandler(tornado.web.RequestHandler):
         self.mysql_client=None
         self.mysql_client_flow=None
         self.body=None
-        self.now_time=datetime.date()
+        self.now_time=datetime.now()
         self.response={
             'err_code':0,
             'err_msg':''
@@ -70,10 +70,10 @@ class RequestExHandler(tornado.web.RequestHandler):
 
 
     def finish_handler_roll_back(self):
-        if not self.mysql_client:
+        if self.mysql_client:
             self.mysql_client.close_roll_back()
         
-        if not self.mysql_client_flow:
+        if self.mysql_client_flow:
             self.mysql_client_flow.close_commit()
 
         self.write(json.dumps(self.response))

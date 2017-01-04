@@ -28,18 +28,27 @@ class MysqlClient(object):
         return self.cursor
         
     def close(self):
-        self.cursor.close()
-        self.connection.close()
+        if self.cursor:
+            self.cursor.close()
+            
+        if self.connection:
+            self.connection.close()
             
     def close_commit(self):
-        self.cursor.close()
-        self.connection.commit()
-        self.connection.close()
+        if self.cursor:
+            self.cursor.close()
+        
+        if self.connection:
+            self.connection.commit()
+            self.connection.close()
         
     def close_roll_back(self):
-        self.cursor.close()
-        self.connection.rollback()
-        self.connection.close()
+        if self.cursor:
+            self.cursor.close()
+            
+        if self.connection:
+            self.connection.rollback()
+            self.connection.close()
             
             
     

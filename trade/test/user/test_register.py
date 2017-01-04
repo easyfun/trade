@@ -6,6 +6,11 @@ from tornado.test.util import unittest
 import tornado.httpclient
 import json
 
+import sys
+
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
+
 class UserRegisterTest(unittest.TestCase):
     def setUp(self):
         pass
@@ -25,7 +30,11 @@ class UserRegisterTest(unittest.TestCase):
         response=client.fetch(request)
 #         print(response)
         print(json.dumps(response.body))
-
+#         print(response.body.get('err_msg'))
+        rj=json.loads(response.body)
+#         print(rj)
+        print(rj['err_msg'])
+        print(rj['err_code'])
 
 if '__main__'==__name__:
     unittest.main()
