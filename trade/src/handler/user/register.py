@@ -17,18 +17,14 @@ from model.user import User,UserFlow
 from exception.error_code import UserErrorCode
 import tornado.httpclient
 import tornado.gen
-import json
 from datetime import datetime
 from dao import MysqlClient
 from handler import id
-from log import get_logger
+from log import logger,log_dumps
+import json
+
 
 class RegisterHandler(RequestExHandler):
-    
-    def logger(self):
-        logger=get_logger('RegisterHandler')
-        return logger
-
     
 #     def get(self):
 #         self.write('ok')
@@ -43,6 +39,7 @@ class RegisterHandler(RequestExHandler):
 #             self.finish()
 #             return
         if not self.check_request(user,self.mysql_client):
+            logger().error(log_dumps(self.response))
             self.finish_handler_roll_back()
             return        
         
@@ -54,6 +51,7 @@ class RegisterHandler(RequestExHandler):
         if user.user_id < 0:
             self.set_response_error(UserErrorCode.CREATE_USER_ID_ERROR)
             self.finish_handler_roll_back()
+            logger().debug(log_dumps(self.response))
             return
         
         user.update_time=datetime.date()
@@ -64,9 +62,11 @@ class RegisterHandler(RequestExHandler):
         user_flow.set_by_user(user)
         user_flow_id_resp=yield tornado.web.gen.Task(http_client.fetch,
             id.ID_URL % (id.USER_FLOW_ID, str(user.user_id%100)))
+        logger().debug(log_dumps(user_flow_id_resp))
         user_flow.flow_id=RequestExHandler.get_id(user_flow_id_resp)
         if user_flow.flow_id < 0:
             self.set_response_error(UserErrorCode.CREATE_USER_FLOW_ID_ERROR)
+            logger().debug(log_dumps(self.response))
             self.finish_handler_roll_back()
             return
         user_flow.operation=UserFlow.REGISTER_USER_REQUEST[0]
@@ -107,6 +107,7 @@ class RegisterHandler(RequestExHandler):
 
     def check_request(self,user,mysql_client):
         body = json.loads(self.request.body)
+        logger().debug(log_dumps(body))
         user.mobile=body.get('mobile','')
         user.user_type=body.get('user_type')
         user.from_type=body.get('from_type', FromType.UNKNOWN)
@@ -120,51 +121,42 @@ class RegisterHandler(RequestExHandler):
 
         #检查手机号
         if 0==len(user.mobile):
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.ARGUMENT_MOBILE_ERROR)
             return False
 
         if not utils.tool.is_numerical_string(user.mobile):
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.ARGUMENT_MOBILE_ERROR)
             return False
         
         #检查登录密码
         if len(user.login_password) < 6:
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.ARGUMENT_PASSWORD_ERROR)
             return False
         
         #检查用户类型
         if not UserType.is_valid(user.user_type):
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.ARGUMENT_USE_TYPE_ERROR)
             return False
 
         #检查推荐人        
         if 0==len(user.referee_mobile):
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_MOBILE_ERROR)
             return False
 
             if not utils.tool.is_numerical_string(user.referee_mobile):
-                self.logger().error(self.response)
                 self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_MOBILE_ERROR)
                 return False
 
         user_dao=UserDao(mysql_client)
         ret,referee=user_dao.get_user_by_mobile(user.referee_mobile)
         if not ret:
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
             return False
         if None==referee:
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.REFEREE_NOT_EXSITED)
             return False
         
         if user.referee_name != referee.real_name:
-            self.logger().error(self.response)
             self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_NAME_ERROR)
             return False
         user.referee_uid=referee.user_id

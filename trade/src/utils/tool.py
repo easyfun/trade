@@ -21,3 +21,4 @@ def is_numerical_string(string):
             return False
         
     return True
+
