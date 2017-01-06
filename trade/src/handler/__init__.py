@@ -11,5 +11,5 @@ handlers=[
     
     (r'/user/register', register.RegisterHandler),
     
-    (r'/id_handler/id_handler', id_handler.IdHandler)
+    (r'/id', id_handler.IdHandler)
 ]

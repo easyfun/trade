@@ -80,7 +80,7 @@ class RequestExHandler(tornado.web.RequestHandler):
         self.finish()
 
 
-    @classmethod
+    @staticmethod
     def get_id(response):
         body=json.loads(response.body)
 #         print(user_id_body)

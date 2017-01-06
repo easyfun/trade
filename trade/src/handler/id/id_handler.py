@@ -16,12 +16,14 @@ from handler.requestex_handler import RequestExHandler
 from exception.error_code import IdErrorCode
 import redis_client
 from handler import id
+from log import logger, log_dumps
 
 #http://domain-name/id/user_id?id_type=&suffix=
 class IdHandler(RequestExHandler):
     def get(self):
         
         if not self.check_function_call(self.check_request):
+            logger().error(log_dumps(self.response))
             return
         
         redis=redis_client.get_redis()

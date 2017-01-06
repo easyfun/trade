@@ -47,6 +47,7 @@ class RegisterHandler(RequestExHandler):
         http_client=tornado.httpclient.AsyncHTTPClient()
         user_id_resp=yield tornado.web.gen.Task(http_client.fetch,
                     id.ID_URL % (id.USER_ID,user.mobile[-2:],))
+        logger().debug(user_id_resp)
         user.user_id=RequestExHandler.get_id(user_id_resp)
         if user.user_id < 0:
             self.set_response_error(UserErrorCode.CREATE_USER_ID_ERROR)
@@ -54,14 +55,14 @@ class RegisterHandler(RequestExHandler):
             logger().debug(log_dumps(self.response))
             return
         
-        user.update_time=datetime.date()
+        user.update_time=datetime.now()
         user.create_time=user.update_time
         
         #插入开户请求流水
         user_flow=UserFlow()
         user_flow.set_by_user(user)
         user_flow_id_resp=yield tornado.web.gen.Task(http_client.fetch,
-            id.ID_URL % (id.USER_FLOW_ID, str(user.user_id%100)))
+            id.ID_URL % (id.USER_FLOW_ID, user.user_id[-2:]))
         logger().debug(log_dumps(user_flow_id_resp))
         user_flow.flow_id=RequestExHandler.get_id(user_flow_id_resp)
         if user_flow.flow_id < 0:
@@ -71,6 +72,7 @@ class RegisterHandler(RequestExHandler):
             return
         user_flow.operation=UserFlow.REGISTER_USER_REQUEST[0]
         user_flow.remark=UserFlow.REGISTER_USER_REQUEST[1]
+        user_flow.create_time=datetime.now()
 
         user_flow_dao=UserFlowDao(self.mysql_client_flow)
         if not user_flow_dao.insert(user_flow):
@@ -139,27 +141,27 @@ class RegisterHandler(RequestExHandler):
             return False
 
         #检查推荐人        
-        if 0==len(user.referee_mobile):
-            self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_MOBILE_ERROR)
-            return False
+        if len(user.referee_mobile) > 0:
+#             self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_MOBILE_ERROR)
+#             return False
 
             if not utils.tool.is_numerical_string(user.referee_mobile):
                 self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_MOBILE_ERROR)
                 return False
 
-        user_dao=UserDao(mysql_client)
-        ret,referee=user_dao.get_user_by_mobile(user.referee_mobile)
-        if not ret:
-            self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
-            return False
-        if None==referee:
-            self.set_response_error(UserErrorCode.REFEREE_NOT_EXSITED)
-            return False
-        
-        if user.referee_name != referee.real_name:
-            self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_NAME_ERROR)
-            return False
-        user.referee_uid=referee.user_id
+            user_dao=UserDao(mysql_client)
+            ret,referee=user_dao.get_user_by_mobile(user.referee_mobile)
+            if not ret:
+                self.set_response_error(UserErrorCode.SYSTEM_ERROR_DATABASE)
+                return False
+            if None==referee:
+                self.set_response_error(UserErrorCode.REFEREE_NOT_EXSITED)
+                return False
+            
+            if user.referee_name != referee.real_name:
+                self.set_response_error(UserErrorCode.ARGUMENT_REFEREE_NAME_ERROR)
+                return False
+            user.referee_uid=referee.user_id
         
         return True
 
